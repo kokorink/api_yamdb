@@ -158,7 +158,7 @@ class GenreTitle(models.Model):
         ordering = ('-genre_id',)
 
     def __str__(self):
-        return f'{self.title_id.name} - {self.genre_id.name}'
+        return f'{self.title_id} - {self.genre_id}'
 
 
 class Review(models.Model):
