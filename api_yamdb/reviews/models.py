@@ -1,5 +1,4 @@
 """Описание моделей проекта."""
-
 from django.core.validators import (validate_slug,
                                     MinValueValidator,
                                     MaxValueValidator)
@@ -19,23 +18,31 @@ class User(models.Model):
     username = models.CharField(
         'Имя пользователя',
         max_length=TITLE_NAME_LENGTH,
+        validators=(validate_slug,)
     )
     email = models.EmailField(
         'Эл.почта',
         max_length=SLUG_MAIL_LENGTH
     )
-    role = models.CharField()
+    role = models.CharField(
+        'Роль',
+        max_length=TITLE_NAME_LENGTH,
+        default='user'
+    )
     bio = models.TextField(
         'О себе',
-        max_length=TEXT_LENGTH
+        max_length=TEXT_LENGTH,
+        null=True
     )
     first_name = models.CharField(
         'Имя',
-        max_length=SLUG_MAIL_LENGTH
+        max_length=SLUG_MAIL_LENGTH,
+        null=True
     )
     last_name = models.CharField(
         'Фамилия',
-        max_length=SLUG_MAIL_LENGTH
+        max_length=SLUG_MAIL_LENGTH,
+        null=True
     )
 
     class Meta:
@@ -107,7 +114,8 @@ class Title(models.Model):
     )
     category = models.ForeignKey(
         Category,
-        on_delete=models.CASCADE,
+        null=True,
+        on_delete=models.SET_NULL,
         verbose_name='категория',
         related_name='category')
 
@@ -152,6 +160,7 @@ class GenreTitle(models.Model):
     def __str__(self):
         return f'{self.title_id.name} - {self.genre_id.name}'
 
+
 class Review(models.Model):
     """Модель отзыва."""
 
@@ -188,7 +197,7 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы'
         constraints = [
             models.UniqueConstraint(
-                fields=('title', 'author', ),
+                fields=('title_id', 'author', ),
                 name='unique_review'
             )]
         ordering = ('-score',)
