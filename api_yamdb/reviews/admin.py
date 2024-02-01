@@ -40,7 +40,7 @@ class GenreAdmin(admin.ModelAdmin):
                     'name',
                     'slug',
                     )
-    list_editable = ('name', 'slug')
+    list_editable = ('slug',)
     search_fields = ('name',)
     list_filter = ('name',)
     list_display_links = ('name',)
