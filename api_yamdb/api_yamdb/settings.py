@@ -21,6 +21,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'rest_framework',
+    'django_filters',
+    'rest_framework_simplejwt',
+    'reviews',
+    'users',
+    'api',
 ]
 
 MIDDLEWARE = [
@@ -101,3 +108,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
+
+MAX_NAME_LENGTH = 30
+MAX_TEXT_LENGTH = 30
+FIELD_NAME_LENGTH = 254
+USERNAME_MAX_LENGTH = 150
+EMAIL_MAX_LENGTH = 254
