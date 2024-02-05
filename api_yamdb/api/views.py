@@ -8,7 +8,8 @@ from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, \
+    IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
@@ -20,7 +21,8 @@ from .permissions import (IsAdminPermission, IsAdminUserOrReadOnly,
 from .serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer,
     ReviewSerializer, TokenSerializer, TitleReadSerializer,
-    TitleWriteSerializer, UserCreateSerializer, UsersSerializer)
+    TitleWriteSerializer, UserCreateSerializer, UsersSerializer,
+    NewUserCreateSerializer)
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
@@ -32,12 +34,12 @@ class SignUpView(APIView):
     """
 
     permission_classes = (permissions.AllowAny,)
-    serializer_class = UserCreateSerializer
+    serializer_class = NewUserCreateSerializer
     queryset = User.objects.all()
 
     def post(self, request, *args, **kwargs):
         """Создание пользователя И Отправка письма с кодом."""
-        serializer = UserCreateSerializer(data=request.data)
+        serializer = NewUserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
             user, _ = User.objects.get_or_create(
@@ -50,32 +52,37 @@ class SignUpView(APIView):
         confirmation_code = default_token_generator.make_token(user)
         user.save()
 
-        send_mail(
-            subject='Код подтверждения',
-            message=f'Ваш код подтверждения: {confirmation_code}',
-            from_email=settings.AUTH_EMAIL,
-            recipient_list=(user.email,),
-            fail_silently=False,
-        )
+        send_mail('Код подтверждения',
+                  f'Ваш код подтверждения: {confirmation_code}',
+                  [settings.AUTH_EMAIL,],
+                  (user.email,),
+                  fail_silently=False,
+                  )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
-    permission_classes = (IsAdminPermission, IsAuthenticatedOrReadOnly)
+    permission_classes = (
+        # IsAdminPermission,
+        permissions.IsAuthenticatedOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     lookup_field = 'username'
     search_fields = ('username',)
     http_method_names = ['get', 'post', 'patch', 'delete']
     pagination_class = LimitOffsetPagination
 
-    @action(detail=False, methods=['get', 'patch'], url_path='me',
-            url_name='me', permission_classes=(permissions.IsAuthenticated,))
+    @action(methods=['GET', 'PATCH'],
+            url_path='me',
+            url_name='me',
+            permission_classes=(IsAuthenticated,),
+            detail=False)
     def about_me(self, request):
         if request.method == 'PATCH':
             serializer = UserCreateSerializer(
-                request.user, data=request.data,
+                request.user,
+                data=request.data,
                 partial=True
             )
             serializer.is_valid(raise_exception=True)

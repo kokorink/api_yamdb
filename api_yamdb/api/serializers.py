@@ -16,11 +16,41 @@ class TokenSerializer(serializers.Serializer):
 
 class UserCreateSerializer(serializers.ModelSerializer):
     username = serializers.RegexField(
-        regex=r'^[\w.@+-]+$',
+        regex=r'^[\w.@+-]+\Z$',
         max_length=settings.USERNAME_MAX_LENGTH,
-        required=True
+        required=True,
     )
+    email = serializers.EmailField(
+        max_length=settings.FIELD_NAME_LENGTH,
+        required=True,
+    )
+    first_name = serializers.CharField(max_length=settings.USERNAME_MAX_LENGTH)
+    last_name = serializers.CharField(max_length=settings.USERNAME_MAX_LENGTH)
 
+    class Meta:
+        model = User
+        fields = ('username',
+                  'email',
+                  'first_name',
+                  'last_name',
+                  'bio',
+                  'role'
+                  )
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                'Имя пользователя "me" запрещено.'
+            )
+        return value
+
+
+class NewUserCreateSerializer(serializers.ModelSerializer):
+    username = serializers.RegexField(
+        regex=r'^[\w.@+-]+\Z$',
+        max_length=settings.USERNAME_MAX_LENGTH,
+        required=True,
+    )
     email = serializers.EmailField(
         max_length=settings.FIELD_NAME_LENGTH,
         required=True,
@@ -30,10 +60,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username',
                   'email',
-                  'first_name',
-                  'last_name',
-                  'bio',
-                  'role')
+                  )
 
     def validate_username(self, value):
         if value == 'me':
@@ -44,6 +71,13 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class UsersSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(max_length=settings.USERNAME_MAX_LENGTH)
+    last_name = serializers.CharField(max_length=settings.USERNAME_MAX_LENGTH)
+    username = serializers.RegexField(
+        regex=r'^[\w.@+-]+\Z',
+        max_length=settings.USERNAME_MAX_LENGTH)
+    email = serializers.EmailField(max_length=settings.EMAIL_MAX_LENGTH)
+
     class Meta:
         model = User
         fields = (
