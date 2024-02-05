@@ -21,7 +21,8 @@ from .permissions import (IsAdminPermission, IsAdminUserOrReadOnly,
 from .serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer,
     ReviewSerializer, TokenSerializer, TitleReadSerializer,
-    TitleWriteSerializer, UserCreateSerializer, UsersSerializer)
+    TitleWriteSerializer, UserCreateSerializer, UsersSerializer,
+    NewUserCreateSerializer)
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
@@ -32,13 +33,13 @@ class SignUpView(APIView):
     письмо с кодом для получения токена.
     """
 
-    # permission_classes = (permissions.AllowAny,)
-    serializer_class = UserCreateSerializer
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = NewUserCreateSerializer
     queryset = User.objects.all()
 
     def post(self, request, *args, **kwargs):
         """Создание пользователя И Отправка письма с кодом."""
-        serializer = UserCreateSerializer(data=request.data)
+        serializer = NewUserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
             user, _ = User.objects.get_or_create(
