@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 
@@ -21,7 +22,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'rest_framework',
     'django_filters',
     'rest_framework_simplejwt',
@@ -109,8 +109,14 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
+AUTH_USER_MODEL = 'users.User'
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+
 MAX_NAME_LENGTH = 30
 MAX_TEXT_LENGTH = 30
 FIELD_NAME_LENGTH = 254
 USERNAME_MAX_LENGTH = 150
 EMAIL_MAX_LENGTH = 254
+AUTH_EMAIL = 'auth@yamdb.ru'

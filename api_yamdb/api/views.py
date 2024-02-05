@@ -31,7 +31,7 @@ class SignUpView(APIView):
     письмо с кодом для получения токена.
     """
 
-    permission_classes = (permissions.AllowAny,)
+    # permission_classes = (permissions.AllowAny,)
     serializer_class = UserCreateSerializer
     queryset = User.objects.all()
 
@@ -47,23 +47,22 @@ class SignUpView(APIView):
                 'Такой логин или email уже существуют',
                 status=status.HTTP_400_BAD_REQUEST
             )
-        confirmation_code = default_token_generator.make_token(user)
+        user.confirmation_code = default_token_generator.make_token(user)
         user.save()
 
-        send_mail(
-            subject='Код подтверждения',
-            message=f'Ваш код подтверждения: {confirmation_code}',
-            from_email=settings.AUTH_EMAIL,
-            recipient_list=(user.email,),
-            fail_silently=False,
-        )
+        send_mail('Код подтверждения',
+                  f'Ваш код подтверждения: {user.confirmation_code}',
+                  [settings.AUTH_EMAIL,],
+                  (user.email,),
+                  fail_silently=False,
+                  )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
-    permission_classes = (IsAdminPermission, IsAuthenticatedOrReadOnly)
+    # permission_classes = (IsAdminPermission, IsAuthenticatedOrReadOnly)
     filter_backends = (filters.SearchFilter,)
     lookup_field = 'username'
     search_fields = ('username',)

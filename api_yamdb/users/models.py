@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser, AbstractBaseUser
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import validate_slug
 from django.db import models
 
@@ -10,36 +10,43 @@ ROLE_CHOICES = (
 )
 
 
-class User(AbstractBaseUser):
+class User(AbstractUser):
     """Модель пользователя."""
-
     username = models.CharField(
         'Имя пользователя',
         max_length=settings.USERNAME_MAX_LENGTH,
-        validators=(validate_slug,)
+        validators=(validate_slug,),
+        unique=True
     )
     email = models.EmailField(
         'Эл.почта',
-        max_length=settings.EMAIL_MAX_LENGTH
+        max_length=settings.EMAIL_MAX_LENGTH,
+        unique=True
     )
     role = models.CharField(
         'Роль',
         default='user',
         max_length=settings.USERNAME_MAX_LENGTH,
+        blank=True,
+        choices=ROLE_CHOICES,
     )
     bio = models.TextField(
         'О себе',
-        null=True
+        null=True,
+        blank=True,
     )
     first_name = models.CharField(
         'Имя',
         max_length=settings.USERNAME_MAX_LENGTH,
-        null=True
+        null=True,
+        blank=True
     )
     last_name = models.CharField(
         'Фамилия',
-        max_length=settings.USERNAME_MAX_LENGTH,
-        null=True
+        max_length=150,
+        # settings.USERNAME_MAX_LENGTH,
+        null=True,
+        blank=True,
     )
     confirmation_code = models.CharField(
         'Код подтверждения',
@@ -48,6 +55,8 @@ class User(AbstractBaseUser):
         blank=False,
         default='314159265358979'
     )
+
+    USERNAME_FIELD = 'username'
 
     @property
     def is_user(self):
@@ -66,7 +75,7 @@ class User(AbstractBaseUser):
         verbose_name_plural = 'Пользователи'
         constraints = [
             models.UniqueConstraint(
-                fields=('email',),
+                fields=('email', 'username'),
                 name='unique_user'
             )]
         ordering = ('-id',)
