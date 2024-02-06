@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -131,13 +132,14 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     permission_classes = (IsAdminUserOrReadOnly,)
     filterset_class = TitleFilter
+    filter_backends = (DjangoFilterBackend, )
     pagination_class = LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
         queryset = Title.objects.annotate(
             rating=Avg('reviews__score')
-        ).order_by('-rating')
+        ).all()
         return queryset
 
     def get_serializer_class(self):
@@ -158,17 +160,19 @@ class ReviewViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
-        title = self.get_title()
+        title = get_object_or_404(
+            Title,
+            id=self.kwargs.get('title_id')
+        )
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        title = self.get_title()
+        title = get_object_or_404(
+            Title,
+            id=self.kwargs.get('title_id')
+        )
         serializer.save(author=self.request.user, title=title)
 
-    def get_title(self):
-        return get_object_or_404(
-            Title, pk=self.kwargs.get('title_id')
-        )
 
 
 class CommentViewSet(viewsets.ModelViewSet):
