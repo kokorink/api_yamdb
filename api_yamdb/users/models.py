@@ -1,3 +1,5 @@
+"""Описание модели пользователя сервиса."""
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import validate_slug
@@ -12,6 +14,7 @@ ROLE_CHOICES = (
 
 class User(AbstractUser):
     """Модель пользователя."""
+
     username = models.CharField(
         'Имя пользователя',
         max_length=settings.USERNAME_MAX_LENGTH,
@@ -60,14 +63,20 @@ class User(AbstractUser):
 
     @property
     def is_user(self):
+        """Проверка соответствия роли 'Пользователь'."""
+
         return self.role == 'user'
 
     @property
     def is_admin(self):
+        """Проверка соответствия роли 'Администратор'."""
+
         return self.role == 'admin'
 
     @property
     def is_moderator(self):
+        """Проверка соответствия роли 'Модератор'."""
+
         return self.role == 'moderator'
 
     class Meta:

@@ -17,6 +17,8 @@ class CategoryGenreAdmin(admin.ModelAdmin):
 
 
 class CommentAdmin(admin.ModelAdmin):
+    """Представление модели Comment."""
+
     list_display = ('id',
                     'author',
                     'text',

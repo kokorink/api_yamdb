@@ -1,3 +1,5 @@
+"""Сериализаторы приложения review."""
+
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -6,6 +8,8 @@ from users.models import User
 
 
 class TokenSerializer(serializers.Serializer):
+    """Сериализация получения токена."""
+
     username = serializers.CharField(required=True)
     confirmation_code = serializers.CharField(required=True)
 
@@ -15,6 +19,8 @@ class TokenSerializer(serializers.Serializer):
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
+    """Сериализация создания пользователя Администратором."""
+
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z$',
         max_length=settings.USERNAME_MAX_LENGTH,
@@ -45,6 +51,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class NewUserCreateSerializer(UserCreateSerializer):
+    """Сериализация создания пользователя."""
 
     class Meta:
         model = User
@@ -54,6 +61,8 @@ class NewUserCreateSerializer(UserCreateSerializer):
 
 
 class UsersSerializer(serializers.ModelSerializer):
+    """Сериализация пользователей."""
+
     first_name = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH, required=False)
     last_name = serializers.CharField(max_length=settings.USERNAME_MAX_LENGTH,
@@ -76,7 +85,7 @@ class UsersSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Category."""
+    """Сериализатор категорий."""
 
     class Meta:
         exclude = ('id',)
@@ -85,7 +94,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Genre."""
+    """Сериализатор жанров."""
 
     class Meta:
         exclude = ('id',)
@@ -94,7 +103,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
-    """Сериализатор для чтения данных модели Title."""
+    """Сериализатор чтения произведений."""
 
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(
@@ -109,7 +118,7 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
-    """Сериализатор для записи данных модели Title."""
+    """Сериализатор записи произведений."""
 
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
@@ -130,6 +139,8 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор отзывов."""
+
     title = serializers.SlugRelatedField(
         slug_field='name',
         read_only=True
@@ -153,6 +164,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор комментариев."""
+
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )

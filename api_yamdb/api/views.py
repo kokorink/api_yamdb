@@ -32,12 +32,14 @@ class SignUpView(APIView):
     POST-запрос с email и username генерирует
     письмо с кодом для получения токена.
     """
+
     permission_classes = (IsAdminOrAny,)
     serializer_class = NewUserCreateSerializer
     queryset = User.objects.all()
 
     def post(self, request, *args, **kwargs):
         """Создание пользователя И Отправка письма с кодом."""
+
         serializer = NewUserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
@@ -61,6 +63,8 @@ class SignUpView(APIView):
 
 
 class UsersViewSet(viewsets.ModelViewSet):
+    """Вьюсет пользователей."""
+
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = (
@@ -95,6 +99,7 @@ class UsersViewSet(viewsets.ModelViewSet):
             )
     def post(self, request, *args, **kwargs):
         """Создание пользователя И Отправка письма с кодом."""
+
         serializer = NewUserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
@@ -126,6 +131,8 @@ class TokenView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
+        """Переопределение метода POST."""
+
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         username = serializer.data['username']
@@ -207,15 +214,21 @@ class CommentViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_review(self):
+        """Определение метода получения отзывов."""
+
         return get_object_or_404(
             Review, pk=self.kwargs.get('review_id'),
             title_id=self.kwargs.get('title_id')
         )
 
     def get_queryset(self):
+        """Переопределение метода получения queryset комментариев."""
+
         review = self.get_review()
         return review.comments.all()
 
     def perform_create(self, serializer):
+        """Переопределение метода создания комментария."""
+
         review = self.get_review()
         serializer.save(author=self.request.user, review=review)

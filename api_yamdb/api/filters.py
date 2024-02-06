@@ -1,8 +1,12 @@
+"""Кастомные фильтры."""
+
 from django_filters import rest_framework as filters
 from reviews.models import Title
 
 
 class TitleFilter(filters.FilterSet):
+    """Фильтрация произведений."""
+
     category = filters.CharFilter(
         field_name='category__slug',
         lookup_expr='iexact'

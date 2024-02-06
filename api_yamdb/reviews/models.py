@@ -1,11 +1,17 @@
+"""Описание моделей приложения reviews."""
+
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from reviews.validators import validate_year
+
+from .validators import validate_year
+
 from users.models import User
 
 
 class NameSlugModel(models.Model):
+    """Базовая модель для моделей содержащих поля Name и Slug."""
+
     name = models.CharField(
         max_length=settings.FIELD_NAME_LENGTH,
         verbose_name='Имя'
@@ -24,6 +30,8 @@ class NameSlugModel(models.Model):
 
 
 class ReviewCommentModel(models.Model):
+    """Базовая модель для моделей Review и Comment."""
+
     author = models.ForeignKey(
         User, on_delete=models.CASCADE,
         verbose_name='Автор'
@@ -43,6 +51,7 @@ class ReviewCommentModel(models.Model):
 
 
 class Category(NameSlugModel):
+    """Модель категорий."""
 
     class Meta(NameSlugModel.Meta):
         verbose_name = 'Категория'
@@ -50,6 +59,7 @@ class Category(NameSlugModel):
 
 
 class Genre(NameSlugModel):
+    """Модель жанров."""
 
     class Meta(NameSlugModel.Meta):
         verbose_name = 'Жанр'
@@ -57,6 +67,8 @@ class Genre(NameSlugModel):
 
 
 class Title(models.Model):
+    """Модель произведений."""
+
     name = models.CharField(
         max_length=settings.FIELD_NAME_LENGTH,
         db_index=True,
@@ -94,6 +106,8 @@ class Title(models.Model):
 
 
 class Review(ReviewCommentModel):
+    """Модель отзывов."""
+
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -119,6 +133,8 @@ class Review(ReviewCommentModel):
 
 
 class Comments(ReviewCommentModel):
+    """Модель комментариев."""
+
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
