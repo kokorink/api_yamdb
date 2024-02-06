@@ -11,19 +11,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
+from reviews.models import Category, Genre, Review, Title
+from users.models import User
 
 from .filters import TitleFilter
 from .mixins import ModelMixinSet
-from .permissions import (IsAdminPermission, IsAdminUserOrReadOnly,
-                          IsAuthorAdminSuperuserOrReadOnlyPermission,
-                          IsAdminOrAny)
-from .serializers import (
-    CategorySerializer, CommentSerializer, GenreSerializer,
-    ReviewSerializer, TokenSerializer, TitleReadSerializer,
-    TitleWriteSerializer, UserCreateSerializer, UsersSerializer,
-    NewUserCreateSerializer)
-from reviews.models import Category, Genre, Review, Title
-from users.models import User
+from .permissions import (IsAdminOrAny, IsAdminPermission,
+                          IsAdminUserOrReadOnly,
+                          IsAuthorAdminSuperuserOrReadOnlyPermission)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, NewUserCreateSerializer,
+                          ReviewSerializer, TitleReadSerializer,
+                          TitleWriteSerializer, TokenSerializer,
+                          UserCreateSerializer, UsersSerializer)
 
 
 class SignUpView(APIView):

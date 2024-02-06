@@ -16,8 +16,7 @@ class UserAdmin(admin.ModelAdmin):
                     'first_name',
                     'last_name'
                     )
-    list_editable = ('role',
-                     )
+    list_editable = ('role',)
     search_fields = ('username', 'first_name', 'last_name',)
     list_display_links = ('username',)
 
