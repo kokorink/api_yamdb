@@ -89,6 +89,9 @@ class Title(models.Model):
         verbose_name_plural = 'Произведения'
         ordering = ('name',)
 
+    def __str__(self):
+        return self.name
+
 
 class Review(ReviewCommentModel):
     title = models.ForeignKey(
@@ -111,8 +114,8 @@ class Review(ReviewCommentModel):
                 fields=['author', 'title'], name='unique review'
             )
         ]
-        verbose_name = 'Review'
-        verbose_name_plural = 'Reviews'
+        verbose_name = 'отзыв'
+        verbose_name_plural = 'Отзывы'
 
 
 class Comments(ReviewCommentModel):
@@ -124,5 +127,5 @@ class Comments(ReviewCommentModel):
     )
 
     class Meta(ReviewCommentModel.Meta):
-        verbose_name = 'Comment'
-        verbose_name_plural = 'Comments'
+        verbose_name = 'комментарий'
+        verbose_name_plural = 'Комментарии'
