@@ -2,8 +2,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-
-from reviews.models import Comments, Genre, Category, Title, Review
+from rest_framework.validators import UniqueValidator
+from reviews.models import Category, Comments, Genre, Review, Title
 from users.models import User
 
 
@@ -31,13 +31,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username',
-                  'email',
-                  'first_name',
-                  'last_name',
-                  'bio',
-                  'role'
-                  )
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
 
     def validate_username(self, value):
         if value == 'me':
@@ -47,16 +41,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return value
 
 
-class NewUserCreateSerializer(serializers.ModelSerializer):
-    username = serializers.RegexField(
-        regex=r'^[\w.@+-]+\Z$',
-        max_length=settings.USERNAME_MAX_LENGTH,
-        required=True,
-    )
-    email = serializers.EmailField(
-        max_length=settings.FIELD_NAME_LENGTH,
-        required=True,
-    )
+class NewUserCreateSerializer(UserCreateSerializer):
 
     class Meta:
         model = User
@@ -64,21 +49,21 @@ class NewUserCreateSerializer(serializers.ModelSerializer):
                   'email',
                   )
 
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError(
-                'Имя пользователя "me" запрещено.'
-            )
-        return value
-
 
 class UsersSerializer(serializers.ModelSerializer):
-    first_name = serializers.CharField(max_length=settings.USERNAME_MAX_LENGTH)
-    last_name = serializers.CharField(max_length=settings.USERNAME_MAX_LENGTH)
+    first_name = serializers.CharField(
+        max_length=settings.USERNAME_MAX_LENGTH, required=False)
+    last_name = serializers.CharField(max_length=settings.USERNAME_MAX_LENGTH,
+                                      required=False)
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z',
-        max_length=settings.USERNAME_MAX_LENGTH)
-    email = serializers.EmailField(max_length=settings.EMAIL_MAX_LENGTH)
+        max_length=settings.USERNAME_MAX_LENGTH,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+    email = serializers.EmailField(
+        max_length=settings.EMAIL_MAX_LENGTH,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
 
     class Meta:
         model = User
