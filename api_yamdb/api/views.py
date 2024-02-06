@@ -7,9 +7,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, \
-    IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
@@ -17,7 +15,8 @@ from rest_framework_simplejwt.tokens import AccessToken
 from .filters import TitleFilter
 from .mixins import ModelMixinSet
 from .permissions import (IsAdminPermission, IsAdminUserOrReadOnly,
-                          IsAuthorAdminSuperuserOrReadOnlyPermission)
+                          IsAuthorAdminSuperuserOrReadOnlyPermission,
+                          IsAdminOrAny)
 from .serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer,
     ReviewSerializer, TokenSerializer, TitleReadSerializer,
@@ -32,8 +31,7 @@ class SignUpView(APIView):
     POST-запрос с email и username генерирует
     письмо с кодом для получения токена.
     """
-
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (IsAdminOrAny,)
     serializer_class = NewUserCreateSerializer
     queryset = User.objects.all()
 
@@ -54,7 +52,7 @@ class SignUpView(APIView):
 
         send_mail('Код подтверждения',
                   f'Ваш код подтверждения: {confirmation_code}',
-                  [settings.AUTH_EMAIL,],
+                  [settings.AUTH_EMAIL, ],
                   (user.email,),
                   fail_silently=False,
                   )
@@ -65,19 +63,18 @@ class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = (
-        # IsAdminPermission,
-        permissions.IsAuthenticatedOrReadOnly,)
+        IsAdminPermission,
+    )
     filter_backends = (filters.SearchFilter,)
     lookup_field = 'username'
     search_fields = ('username',)
     http_method_names = ['get', 'post', 'patch', 'delete']
-    pagination_class = LimitOffsetPagination
 
     @action(methods=['GET', 'PATCH'],
+            detail=False,
             url_path='me',
             url_name='me',
-            permission_classes=(IsAuthenticated,),
-            detail=False)
+            permission_classes=(IsAuthenticated,), )
     def about_me(self, request):
         if request.method == 'PATCH':
             serializer = UserCreateSerializer(
@@ -89,6 +86,33 @@ class UsersViewSet(viewsets.ModelViewSet):
             serializer.save(role=request.user.role)
             return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UserCreateSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(methods=['POST'],
+            detail=False,
+            permission_classes=(IsAdminPermission,),
+            )
+    def post(self, request, *args, **kwargs):
+        """Создание пользователя И Отправка письма с кодом."""
+        serializer = NewUserCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            user, _ = User.objects.get_or_create(
+                **serializer.validated_data)
+        except IntegrityError:
+            return Response(
+                'Такой логин или email уже существуют',
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        confirmation_code = default_token_generator.make_token(user)
+        user.save()
+
+        send_mail('Код подтверждения',
+                  f'Ваш код подтверждения: {confirmation_code}',
+                  [settings.AUTH_EMAIL, ],
+                  (user.email,),
+                  fail_silently=False,
+                  )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -131,7 +155,6 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     permission_classes = (IsAdminUserOrReadOnly,)
     filterset_class = TitleFilter
-    pagination_class = LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
@@ -154,7 +177,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         IsAuthorAdminSuperuserOrReadOnlyPermission,
         permissions.IsAuthenticatedOrReadOnly
     ]
-    pagination_class = LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
@@ -179,7 +201,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         IsAuthorAdminSuperuserOrReadOnlyPermission,
         permissions.IsAuthenticatedOrReadOnly
     ]
-    pagination_class = LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_review(self):
