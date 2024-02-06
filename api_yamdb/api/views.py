@@ -196,7 +196,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, title=title)
 
 
-
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет комментариев."""
 
