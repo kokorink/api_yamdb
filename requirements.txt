@@ -18,7 +18,7 @@ iniconfig                     2.0.0
 isort                         5.13.2
 mccabe                        0.7.0
 packaging                     23.2
-pip                           23.3.2
+pip                           24.0
 platformdirs                  4.2.0
 pluggy                        0.13.1
 py                            1.11.0
