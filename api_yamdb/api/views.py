@@ -12,19 +12,18 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
-from reviews.models import Category, Genre, Review, Title
-from users.models import User
 
 from .filters import TitleFilter
 from .mixins import ModelMixinSet
-from .permissions import (IsAdminOrAny, IsAdminPermission,
-                          IsAdminUserOrReadOnly,
+from .permissions import (IsAdminPermission, IsAdminUserOrReadOnly,
                           IsAuthorAdminSuperuserOrReadOnlyPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, NewUserCreateSerializer,
                           ReviewSerializer, TitleReadSerializer,
                           TitleWriteSerializer, TokenSerializer,
                           UserCreateSerializer, UsersSerializer)
+from reviews.models import Category, Genre, Review, Title
+from users.models import User
 
 
 class SignUpView(APIView):
@@ -33,7 +32,7 @@ class SignUpView(APIView):
     письмо с кодом для получения токена.
     """
 
-    permission_classes = (IsAdminOrAny,)
+    permission_classes = (IsAuthorAdminSuperuserOrReadOnlyPermission,)
     serializer_class = NewUserCreateSerializer
     queryset = User.objects.all()
 
@@ -51,8 +50,6 @@ class SignUpView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         confirmation_code = default_token_generator.make_token(user)
-        user.save()
-
         send_mail('Код подтверждения',
                   f'Ваш код подтверждения: {confirmation_code}',
                   [settings.AUTH_EMAIL, ],
@@ -62,7 +59,7 @@ class SignUpView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UsersViewSet(viewsets.ModelViewSet):
+class UsersViewSet(viewsets.ModelViewSet, SignUpView):
     """Вьюсет пользователей."""
 
     queryset = User.objects.all()
@@ -91,34 +88,6 @@ class UsersViewSet(viewsets.ModelViewSet):
             serializer.save(role=request.user.role)
             return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UserCreateSerializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @action(methods=['POST'],
-            detail=False,
-            permission_classes=(IsAdminPermission,),
-            )
-    def post(self, request, *args, **kwargs):
-        """Создание пользователя И Отправка письма с кодом."""
-
-        serializer = NewUserCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        try:
-            user, _ = User.objects.get_or_create(
-                **serializer.validated_data)
-        except IntegrityError:
-            return Response(
-                'Такой логин или email уже существуют',
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        confirmation_code = default_token_generator.make_token(user)
-        user.save()
-
-        send_mail('Код подтверждения',
-                  f'Ваш код подтверждения: {confirmation_code}',
-                  [settings.AUTH_EMAIL, ],
-                  (user.email,),
-                  fail_silently=False,
-                  )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -224,8 +193,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Переопределение метода получения queryset комментариев."""
 
-        review = self.get_review()
-        return review.comments.all()
+        return self.get_review().comments.all()
 
     def perform_create(self, serializer):
         """Переопределение метода создания комментария."""
