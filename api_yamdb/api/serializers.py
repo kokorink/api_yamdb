@@ -20,8 +20,8 @@ class TokenSerializer(serializers.Serializer):
         )
 
 
-class UserCreateSerializer(serializers.ModelSerializer):
-    """Сериализация создания пользователя Администратором."""
+class SignUpSerializer(serializers.ModelSerializer):
+    """Сериализация создания пользователя."""
 
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z$',
@@ -32,19 +32,12 @@ class UserCreateSerializer(serializers.ModelSerializer):
         max_length=settings.FIELD_NAME_LENGTH,
         required=True,
     )
-    first_name = serializers.CharField(max_length=settings.USERNAME_MAX_LENGTH)
-    last_name = serializers.CharField(max_length=settings.USERNAME_MAX_LENGTH)
 
     class Meta:
         model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role'
-        )
+        fields = ('username',
+                  'email',
+                  )
 
     def validate_username(self, value):
         if value == 'me':
@@ -54,33 +47,27 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return value
 
 
-class NewUserCreateSerializer(UserCreateSerializer):
-    """Сериализация создания пользователя."""
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-        )
-
-
-class UsersSerializer(serializers.ModelSerializer):
+class UsersSerializer(SignUpSerializer):
     """Сериализация пользователей."""
-
-    first_name = serializers.CharField(
-        max_length=settings.USERNAME_MAX_LENGTH, required=False)
-    last_name = serializers.CharField(max_length=settings.USERNAME_MAX_LENGTH,
-                                      required=False)
+    
     username = serializers.RegexField(
-        regex=r'^[\w.@+-]+\Z',
+        regex=r'^[\w.@+-]+\Z$',
         max_length=settings.USERNAME_MAX_LENGTH,
+        required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
     email = serializers.EmailField(
-        max_length=settings.EMAIL_MAX_LENGTH,
+        max_length=settings.FIELD_NAME_LENGTH,
+        required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
+
+    first_name = serializers.CharField(
+        max_length=settings.USERNAME_MAX_LENGTH,
+        required=False)
+    last_name = serializers.CharField(
+        max_length=settings.USERNAME_MAX_LENGTH,
+        required=False)
 
     class Meta:
         model = User
