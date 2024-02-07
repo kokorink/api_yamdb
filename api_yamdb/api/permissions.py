@@ -1,14 +1,7 @@
 """Описание ограничений доступа."""
 
 from rest_framework import permissions
-from rest_framework.permissions import BasePermission
-
-
-class IsAdminOrAny(BasePermission):
-
-    def has_permission(self, request, view):
-        return (request.user.is_authenticated or permissions.AllowAny
-                or request.user.is_admin or request.user.role == 'admin')
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
 class IsAdminUserOrReadOnly(BasePermission):
@@ -41,8 +34,7 @@ class IsAdminPermission(BasePermission):
 
     def has_permission(self, request, view):
         return (request.user.is_authenticated
-                and request.user.is_admin
-                or request.user.is_superuser)
+                and request.user.is_admin)
 
 
 class IsAdminIsModeratorIsStaffIsSuperuserPermission(BasePermission):
@@ -50,5 +42,4 @@ class IsAdminIsModeratorIsStaffIsSuperuserPermission(BasePermission):
 
     def has_permission(self, request, view):
         return (request.user.is_admin
-                or request.user.is_staff
-                or request.user.is_superuser)
+                or request.user.is_staff)
