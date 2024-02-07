@@ -1,5 +1,3 @@
-"""Сериализаторы приложения review."""
-
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -16,8 +14,10 @@ class TokenSerializer(serializers.Serializer):
 
     class Meta:
         model = User
-        fields = ('username',
-                  'confirmation_code')
+        fields = (
+            'username',
+            'confirmation_code'
+        )
 
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -49,6 +49,7 @@ class SignUpSerializer(serializers.ModelSerializer):
 
 class UsersSerializer(SignUpSerializer):
     """Сериализация пользователей."""
+    
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z$',
         max_length=settings.USERNAME_MAX_LENGTH,
@@ -109,8 +110,16 @@ class TitleReadSerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField(read_only=True, default=0.00)
 
     class Meta:
-        fields = '__all__'
         model = Title
+        fields = (
+            'id',
+            'name',
+            'year',
+            'category',
+            'description',
+            'genre',
+            'rating'
+        )
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
@@ -126,12 +135,19 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         many=True
     )
 
+    class Meta:
+        model = Title
+        fields = (
+            'id',
+            'name',
+            'year',
+            'category',
+            'description',
+            'genre'
+        )
+
     def to_representation(self, instance):
         return TitleReadSerializer(instance).data
-
-    class Meta:
-        fields = '__all__'
-        model = Title
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -146,8 +162,15 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
         model = Review
+        fields = (
+            'id',
+            'title',
+            'author',
+            'text',
+            'pub_date',
+            'score'
+        )
 
     def validate(self, data):
         if self.context['request'].method == 'POST' and Review.objects.filter(
@@ -167,6 +190,11 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
         model = Comments
+        fields = (
+            'id',
+            'author',
+            'text',
+            'pub_date'
+        )
         read_only_fields = ('review',)
