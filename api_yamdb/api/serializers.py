@@ -49,7 +49,7 @@ class SignUpSerializer(serializers.ModelSerializer):
 
 class UsersSerializer(SignUpSerializer):
     """Сериализация пользователей."""
-    
+
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z$',
         max_length=settings.USERNAME_MAX_LENGTH,
@@ -61,7 +61,6 @@ class UsersSerializer(SignUpSerializer):
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
-
     first_name = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         required=False)
