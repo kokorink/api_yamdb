@@ -33,12 +33,6 @@ class IsAdminPermission(BasePermission):
 
     def has_permission(self, request, view):
         return (request.user.is_authenticated
-                and request.user.is_admin)
+                and request.user.is_admin
+                )
 
-
-class IsAdminIsModeratorIsStaffIsSuperuserPermission(BasePermission):
-    """Ограничение для доступа ролей админ и выше."""
-
-    def has_permission(self, request, view):
-        return (request.user.is_admin
-                or request.user.is_staff)
