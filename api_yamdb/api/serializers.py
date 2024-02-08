@@ -39,15 +39,25 @@ class SignUpSerializer(serializers.ModelSerializer):
                   'email',
                   )
 
-    def validate_username(self, value):
-        if value == 'me':
+    def validate(self, data):
+        """Запрещает пользователям присваивать себе имя me
+        и использовать повторные username и email."""
+        if data.get('username') == 'me':
             raise serializers.ValidationError(
-                'Имя пользователя "me" запрещено.'
+                'Использовать имя me запрещено'
             )
-        return value
+        # if User.objects.filter(username=data.get('username')):
+        #     raise serializers.ValidationError(
+        #         'Пользователь с таким username уже существует'
+        #     )
+        # if User.objects.filter(email=data.get('email')):
+        #     raise serializers.ValidationError(
+        #         'Пользователь с таким email уже существует'
+        #     )
+        return data
 
 
-class UsersSerializer(SignUpSerializer):
+class UsersSerializer(serializers.ModelSerializer):
     """Сериализация пользователей."""
 
     username = serializers.RegexField(
@@ -131,7 +141,8 @@ class TitleWriteSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         queryset=Genre.objects.all(),
         slug_field='slug',
-        many=True
+        many=True,
+        required=True
     )
 
     class Meta:
@@ -152,19 +163,15 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор отзывов."""
 
-    title = serializers.SlugRelatedField(
-        slug_field='name',
-        read_only=True
-    )
     author = serializers.SlugRelatedField(
-        read_only=True, slug_field='username'
+        read_only=True,
+        slug_field='username'
     )
 
     class Meta:
         model = Review
         fields = (
             'id',
-            'title',
             'author',
             'text',
             'pub_date',
@@ -185,7 +192,8 @@ class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор комментариев."""
 
     author = serializers.SlugRelatedField(
-        read_only=True, slug_field='username'
+        read_only=True,
+        slug_field='username'
     )
 
     class Meta:
@@ -196,4 +204,3 @@ class CommentSerializer(serializers.ModelSerializer):
             'text',
             'pub_date'
         )
-        read_only_fields = ('review',)
