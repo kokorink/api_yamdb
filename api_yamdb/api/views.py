@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -107,7 +106,10 @@ class TokenView(APIView):
         user = get_object_or_404(User, username=username)
         confirmation_code = serializer.data['confirmation_code']
         if not default_token_generator.check_token(user, confirmation_code):
-            raise ValidationError('Неверный код')
+            return Response(
+                {'confirmation_code': 'Неверный код'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         token = AccessToken.for_user(user)
         return Response({'token': str(token)}, status=status.HTTP_200_OK)
 
