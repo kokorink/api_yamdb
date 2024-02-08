@@ -1,10 +1,10 @@
 """Описание моделей приложения reviews."""
 
+import datetime
+
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
-from .validators import validate_year
 
 from users.models import User
 
@@ -13,12 +13,13 @@ class NameSlugModel(models.Model):
     """Базовая модель для моделей содержащих поля Name и Slug."""
 
     name = models.CharField(
+        'Имя',
         max_length=settings.FIELD_NAME_LENGTH,
-        verbose_name='Имя'
     )
     slug = models.SlugField(
-        unique=True, db_index=True,
-        verbose_name='Слаг'
+        'Слаг',
+        unique=True,
+        db_index=True,
     )
 
     class Meta:
@@ -33,13 +34,17 @@ class ReviewCommentModel(models.Model):
     """Базовая модель для моделей Review и Comment."""
 
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE,
+        User,
+        on_delete=models.CASCADE,
         verbose_name='Автор'
     )
-    text = models.CharField(max_length=200)
+    text = models.CharField(
+        'Текст отзыва',
+        max_length=settings.MAX_REVIEW_TEXT,
+    )
     pub_date = models.DateTimeField(
+        'Дата публикации',
         auto_now_add=True, db_index=True,
-        verbose_name='Дата публикации'
     )
 
     class Meta:
@@ -70,13 +75,23 @@ class Title(models.Model):
     """Модель произведений."""
 
     name = models.CharField(
+        'Название',
         max_length=settings.FIELD_NAME_LENGTH,
         db_index=True,
-        verbose_name='Название'
     )
-    year = models.PositiveSmallIntegerField(
-        validators=(validate_year,),
-        verbose_name='Год'
+    year = models.SmallIntegerField(
+        'Год',
+        validators=[
+            MinValueValidator(
+                -4000,
+                message="Согласно справочным данным, первые писания "
+                        "датируются 4 тысячелетием до н.э. Введите, "
+                        "пожалуйста, корректные данные."),
+            MaxValueValidator(
+                datetime.datetime.now().year,
+                message="Год выпуска не может превышать текущий. Введите. "
+                        "пожалуйста, корректные данные.")
+        ],
     )
     category = models.ForeignKey(
         Category,
@@ -87,9 +102,8 @@ class Title(models.Model):
         verbose_name='Категория'
     )
     description = models.TextField(
-        null=True,
+        'Описание',
         blank=True,
-        verbose_name='Описание'
     )
     genre = models.ManyToManyField(
         Genre, related_name='titles',
@@ -115,11 +129,15 @@ class Review(ReviewCommentModel):
         verbose_name='Обзор'
     )
     score = models.PositiveSmallIntegerField(
+        'Оценка',
         validators=[
-            MinValueValidator(1, message="Оценка не может быть меньше 1"),
-            MaxValueValidator(10, message="Оценка не может быть больше 10")
+            MinValueValidator(
+                1,
+                message="Оценка не может быть меньше 1"),
+            MaxValueValidator(
+                10,
+                message="Оценка не может быть больше 10")
         ],
-        verbose_name='Оценка'
     )
 
     class Meta(ReviewCommentModel.Meta):

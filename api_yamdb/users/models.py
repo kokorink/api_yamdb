@@ -5,10 +5,14 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import validate_slug
 from django.db import models
 
+MODERATOR = 'moderator'
+ADMIN = 'admin'
+USER = 'user'
+
 ROLE_CHOICES = (
-    ('moderator', 'Модератор'),
-    ('admin', 'Администратор'),
-    ('user', 'Пользователь'),
+    (MODERATOR, 'Модератор'),
+    (ADMIN, 'Администратор'),
+    (USER, 'Пользователь'),
 )
 
 
@@ -28,35 +32,23 @@ class User(AbstractUser):
     )
     role = models.CharField(
         'Роль',
-        default='user',
+        default=USER,
         max_length=settings.USERNAME_MAX_LENGTH,
-        blank=True,
         choices=ROLE_CHOICES,
     )
     bio = models.TextField(
         'О себе',
-        null=True,
         blank=True,
     )
     first_name = models.CharField(
         'Имя',
         max_length=settings.USERNAME_MAX_LENGTH,
-        null=True,
         blank=True
     )
     last_name = models.CharField(
         'Фамилия',
-        max_length=150,
-        # settings.USERNAME_MAX_LENGTH,
-        null=True,
+        max_length=settings.USERNAME_MAX_LENGTH,
         blank=True,
-    )
-    confirmation_code = models.CharField(
-        'Код подтверждения',
-        max_length=255,
-        null=True,
-        blank=False,
-        default='314159265358979'
     )
 
     USERNAME_FIELD = 'username'
@@ -65,19 +57,21 @@ class User(AbstractUser):
     def is_user(self):
         """Проверка соответствия роли 'Пользователь'."""
 
-        return self.role == 'user'
+        return self.role == USER
 
     @property
     def is_admin(self):
         """Проверка соответствия роли 'Администратор'."""
 
-        return self.role == 'admin'
+        return (self.role == ADMIN
+                or self.is_superuser
+                )
 
     @property
     def is_moderator(self):
         """Проверка соответствия роли 'Модератор'."""
 
-        return self.role == 'moderator'
+        return self.role == MODERATOR
 
     class Meta:
         verbose_name = 'пользователь'
@@ -87,7 +81,6 @@ class User(AbstractUser):
                 fields=('email', 'username'),
                 name='unique_user'
             )]
-        ordering = ('-id',)
 
     def str(self):
         return self.username

@@ -13,7 +13,6 @@ SECRET_KEY = os.getenv(
     'SECRET_KEY',
     default='p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs')
 
-# SECRET_KEY = 'p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -153,3 +152,4 @@ FIELD_NAME_LENGTH = 254
 USERNAME_MAX_LENGTH = 150
 EMAIL_MAX_LENGTH = 254
 AUTH_EMAIL = 'auth@yamdb.ru'
+MAX_REVIEW_TEXT = 500
