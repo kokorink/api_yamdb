@@ -51,7 +51,7 @@ class User(AbstractUser):
         blank=True,
     )
 
-    USERNAME_FIELD = 'username'
+    # USERNAME_FIELD = 'username'
 
     @property
     def is_user(self):
