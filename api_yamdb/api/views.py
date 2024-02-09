@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
@@ -16,7 +16,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from .filters import TitleFilter
 from .mixins import ModelMixinSet
 from .permissions import (IsAdminPermission, IsAdminUserOrReadOnly,
-                          IsAuthorAdminSuperuserOrReadOnlyPermission)
+                          IsAuthorAdminSuperuserOrReadOnlyPermission,)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, SignUpSerializer,
                           ReviewSerializer, TitleReadSerializer,
@@ -75,7 +75,8 @@ class UsersViewSet(viewsets.ModelViewSet, SignUpView):
             detail=False,
             url_path='me',
             url_name='me',
-            permission_classes=(IsAuthenticated,), )
+            permission_classes=(IsAuthenticated,),
+            )
     def about_me(self, request):
         if request.method == 'PATCH':
             serializer = UsersSerializer(
@@ -88,6 +89,12 @@ class UsersViewSet(viewsets.ModelViewSet, SignUpView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UsersSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # def get_permissions(self):
+    #     if self.request.method == SAFE_METHODS
+    #         or ('role' not in self.request.context):
+    #         return IsAuthenticated
+    #     if self.request.context['user']
 
 
 class TokenView(APIView):
