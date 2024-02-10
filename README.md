@@ -17,11 +17,11 @@
 Клонировать репозиторий и перейти в него в командной строке:
 
 ```
-git clone https://github.com/kokorink/api_final_yatube.git
+git clone git@github.com:kokorink/api_yamdb.git
 ```
 
 ```
-cd api_final_yatube
+cd api_yamdb
 ```
 
 Cоздать и активировать виртуальное окружение:
@@ -66,11 +66,14 @@ python3 manage.py runserver
 http://127.0.0.1:8000/redoc/
 ```
 
-## Авторы проекта
+## Авторы проекта:
 ### Студенты 11 группы 75 когорты курса Python-разработчик Яндекс.Практикум: 
 ### Арман Арутунян
 ### Богдан Нугманов
 ### Константин Кокорин
+
+### Ревьювер:
+### Алексей Кашлинов
 
 ### © Copyright
 #### All rights reserved
