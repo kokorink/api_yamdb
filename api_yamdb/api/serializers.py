@@ -21,8 +21,8 @@ class TokenSerializer(serializers.Serializer):
 
 
 class SignUpSerializer(serializers.ModelSerializer):
-    """Следит за уникальностью полей email и username,
-       валидирует username"""
+    """Сериализация при регистрации / повторного запроса подтверждения."""
+
     email = serializers.EmailField(
         max_length=254, required=True)
 
@@ -39,6 +39,8 @@ class SignUpSerializer(serializers.ModelSerializer):
             'username')
 
     def validate_username(self, username):
+        """Проверка на запрет использования имени 'me'."""
+
         if username == 'me':
             raise serializers.ValidationError(
                 "Имя 'me' для username запрещено."
@@ -46,6 +48,9 @@ class SignUpSerializer(serializers.ModelSerializer):
         return username
 
     def validate(self, data):
+        """Валидация на запрет повторного использования username и email не
+        соответствующих друг другу."""
+
         username = data.get('username')
         email = data.get('email')
         if (User.objects.filter(username=username).exists()
@@ -104,8 +109,9 @@ class UsersSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        """Запрещает пользователям присваивать себе имя me
-        и использовать повторные username и email."""
+        """Запрещает пользователям присваивать себе имя me и использовать
+        повторные username и email."""
+
         if data.get('username') == 'me':
             raise serializers.ValidationError(
                 'Использовать имя me запрещено'
