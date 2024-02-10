@@ -1,5 +1,5 @@
 from django.conf import settings
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comments, Genre, Review, Title
@@ -21,40 +21,86 @@ class TokenSerializer(serializers.Serializer):
 
 
 class SignUpSerializer(serializers.ModelSerializer):
-    """Сериализация создания пользователя."""
+    """Следит за уникальностью полей email и username,
+       валидирует username"""
+    email = serializers.EmailField(
+        max_length=254, required=True)
 
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z$',
         max_length=settings.USERNAME_MAX_LENGTH,
         required=True,
     )
-    email = serializers.EmailField(
-        max_length=settings.FIELD_NAME_LENGTH,
-        required=True,
-    )
 
     class Meta:
         model = User
-        fields = ('username',
-                  'email',
-                  )
+        fields = (
+            'email',
+            'username')
+
+    def validate_username(self, username):
+        if username == 'me':
+            raise serializers.ValidationError(
+                "Имя 'me' для username запрещено."
+            )
+        return username
 
     def validate(self, data):
-        """Запрещает пользователям присваивать себе имя me
-        и использовать повторные username и email."""
-        if data.get('username') == 'me':
-            raise serializers.ValidationError(
-                'Использовать имя me запрещено'
-            )
-        # if User.objects.filter(username=data.get('username')):
-        #     raise serializers.ValidationError(
-        #         'Пользователь с таким username уже существует'
-        #     )
-        # if User.objects.filter(email=data.get('email')):
-        #     raise serializers.ValidationError(
-        #         'Пользователь с таким email уже существует'
-        #     )
+        username = data.get('username')
+        email = data.get('email')
+        user_exists = User.objects.filter(username=username).exists()
+        email_exists = User.objects.filter(email=email).exists()
+        if user_exists:
+            user = User.objects.get(username=username)
+            if user.email != email:
+                raise serializers.ValidationError(
+                    {"username": "Неверно указан email пользователя"},
+                    status.HTTP_400_BAD_REQUEST,
+                )
+        if email_exists:
+            user = User.objects.get(email=email)
+            if user.username != username:
+                raise serializers.ValidationError(
+                    {"email": "Пользователь с таким email уже существует"},
+                    status.HTTP_400_BAD_REQUEST,
+                )
         return data
+
+# class SignUpSerializer(serializers.ModelSerializer):
+#     """Сериализация создания пользователя."""
+#
+#     username = serializers.RegexField(
+#         regex=r'^[\w.@+-]+\Z$',
+#         max_length=settings.USERNAME_MAX_LENGTH,
+#         required=True,
+#     )
+#     email = serializers.EmailField(
+#         max_length=settings.FIELD_NAME_LENGTH,
+#         required=True,
+#     )
+#
+#     class Meta:
+#         model = User
+#         fields = ('username',
+#                   'email',
+#                   )
+#
+#     def validate_username(self, data):
+#         """Запрещает пользователям присваивать себе имя me
+#         и использовать повторные username и email."""
+#         if data.get('username') == 'me':
+#             raise serializers.ValidationError(
+#                 'Использовать имя me запрещено'
+#             )
+#         # if User.objects.filter(username=data.get('username')):
+#         #     raise serializers.ValidationError(
+#         #         'Пользователь с таким username уже существует'
+#         #     )
+#         # if User.objects.filter(email=data.get('email')):
+#         #     raise serializers.ValidationError(
+#         #         'Пользователь с таким email уже существует'
+#         #     )
+#         return data
 
 
 class UsersSerializer(serializers.ModelSerializer):
