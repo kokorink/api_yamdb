@@ -112,18 +112,24 @@ class UsersSerializer(serializers.ModelSerializer):
         """Запрещает пользователям присваивать себе имя me и использовать
         повторные username и email."""
 
-        if attrs.get('username') == 'me':
+        username = attrs.get('username')
+        email = attrs.get('email')
+        if username == 'me':
             raise serializers.ValidationError(
                 'Использовать имя me запрещено'
             )
-        if User.objects.filter(username=attrs.get('username')):
-            raise serializers.ValidationError(
-                'Пользователь с таким username уже существует'
-            )
-        if User.objects.filter(email=attrs.get('email')):
-            raise serializers.ValidationError(
-                'Пользователь с таким email уже существует'
-            )
+        if User.objects.filter(username=username).exists():
+            if User.objects.get(username=username).email != email:
+                raise serializers.ValidationError(
+                    {"username": "Неверно указан email пользователя"},
+                    status.HTTP_400_BAD_REQUEST,
+                )
+        if User.objects.filter(email=email).exists():
+            if User.objects.get(email=email).username != username:
+                raise serializers.ValidationError(
+                    {"email": "Пользователь с таким email уже существует"},
+                    status.HTTP_400_BAD_REQUEST,
+                )
         return attrs
 
 
