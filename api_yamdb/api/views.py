@@ -13,17 +13,18 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
+from reviews.models import Category, Genre, Review, Title
+from users.models import User
+
 from .filters import TitleFilter
 from .mixins import ModelMixinSet
 from .permissions import (IsAdminPermission, IsAdminUserOrReadOnly,
-                          IsAuthorAdminSuperuserOrReadOnlyPermission)
+                          IsAuthorAdminSuperuserOrReadOnlyPermission,)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, SignUpSerializer,
                           ReviewSerializer, TitleReadSerializer,
                           TitleWriteSerializer, TokenSerializer,
                           UsersSerializer)
-from reviews.models import Category, Genre, Review, Title
-from users.models import User
 
 
 class SignUpView(APIView):
@@ -36,7 +37,7 @@ class SignUpView(APIView):
     serializer_class = SignUpSerializer
     queryset = User.objects.all()
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         """Создание пользователя И Отправка письма с кодом."""
 
         serializer = SignUpSerializer(data=request.data)
@@ -75,8 +76,11 @@ class UsersViewSet(viewsets.ModelViewSet, SignUpView):
             detail=False,
             url_path='me',
             url_name='me',
-            permission_classes=(IsAuthenticated,), )
+            permission_classes=(IsAuthenticated,),
+            )
     def about_me(self, request):
+        """Обновление данных и просмотр своего профиля пользователя."""
+
         if request.method == 'PATCH':
             serializer = UsersSerializer(
                 request.user,
