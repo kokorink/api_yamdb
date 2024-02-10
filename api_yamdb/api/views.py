@@ -13,6 +13,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
+from reviews.models import Category, Genre, Review, Title
+from users.models import User
+
 from .filters import TitleFilter
 from .mixins import ModelMixinSet
 from .permissions import (IsAdminPermission, IsAdminUserOrReadOnly,
@@ -22,8 +25,6 @@ from .serializers import (CategorySerializer, CommentSerializer,
                           ReviewSerializer, TitleReadSerializer,
                           TitleWriteSerializer, TokenSerializer,
                           UsersSerializer)
-from reviews.models import Category, Genre, Review, Title
-from users.models import User
 
 
 class SignUpView(APIView):
@@ -36,7 +37,7 @@ class SignUpView(APIView):
     serializer_class = SignUpSerializer
     queryset = User.objects.all()
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         """Создание пользователя И Отправка письма с кодом."""
 
         serializer = SignUpSerializer(data=request.data)
@@ -78,6 +79,8 @@ class UsersViewSet(viewsets.ModelViewSet, SignUpView):
             permission_classes=(IsAuthenticated,),
             )
     def about_me(self, request):
+        """Обновление данных и просмотр своего профиля пользователя."""
+
         if request.method == 'PATCH':
             serializer = UsersSerializer(
                 request.user,
@@ -89,12 +92,6 @@ class UsersViewSet(viewsets.ModelViewSet, SignUpView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UsersSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    # def get_permissions(self):
-    #     if self.request.method == SAFE_METHODS
-    #         or ('role' not in self.request.context):
-    #         return IsAuthenticated
-    #     if self.request.context['user']
 
 
 class TokenView(APIView):

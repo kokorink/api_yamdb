@@ -47,12 +47,12 @@ class SignUpSerializer(serializers.ModelSerializer):
             )
         return username
 
-    def validate(self, data):
+    def validate(self, attrs):
         """Валидация на запрет повторного использования username и email не
         соответствующих друг другу."""
 
-        username = data.get('username')
-        email = data.get('email')
+        username = attrs.get('username')
+        email = attrs.get('email')
         if (User.objects.filter(username=username).exists()
                 and User.objects.filter(email=email).exists()):
             if User.objects.get(username=username).email != email:
@@ -73,7 +73,7 @@ class SignUpSerializer(serializers.ModelSerializer):
                     {"email": "Пользователь с таким email уже существует"},
                     status.HTTP_400_BAD_REQUEST,
                 )
-        return data
+        return attrs
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -108,23 +108,23 @@ class UsersSerializer(serializers.ModelSerializer):
             'role',
         )
 
-    def validate(self, data):
+    def validate(self, attrs):
         """Запрещает пользователям присваивать себе имя me и использовать
         повторные username и email."""
 
-        if data.get('username') == 'me':
+        if attrs.get('username') == 'me':
             raise serializers.ValidationError(
                 'Использовать имя me запрещено'
             )
-        if User.objects.filter(username=data.get('username')):
+        if User.objects.filter(username=attrs.get('username')):
             raise serializers.ValidationError(
                 'Пользователь с таким username уже существует'
             )
-        if User.objects.filter(email=data.get('email')):
+        if User.objects.filter(email=attrs.get('email')):
             raise serializers.ValidationError(
                 'Пользователь с таким email уже существует'
             )
-        return data
+        return attrs
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -215,14 +215,14 @@ class ReviewSerializer(serializers.ModelSerializer):
             'score'
         )
 
-    def validate(self, data):
+    def validate(self, attrs):
         if self.context['request'].method == 'POST' and Review.objects.filter(
                 author=self.context['request'].user,
                 title_id=self.context['view'].kwargs.get('title_id')
         ).exists():
             raise serializers.ValidationError(
                 'Нельзя оставить два отзыва на одно произведение.')
-        return data
+        return attrs
 
 
 class CommentSerializer(serializers.ModelSerializer):
