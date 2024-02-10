@@ -1,6 +1,5 @@
 from django.conf import settings
 from rest_framework import serializers, status
-from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comments, Genre, Review, Title
 from users.models import User
@@ -20,25 +19,21 @@ class TokenSerializer(serializers.Serializer):
         )
 
 
-class SignUpSerializer(serializers.ModelSerializer):
-    """Сериализация при регистрации / повторного запроса подтверждения."""
-
-    email = serializers.EmailField(
-        max_length=254, required=True)
+class BaseUserSerializer(serializers.ModelSerializer):
+    """Базовый сериализатор для пользователей."""
 
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z$',
         max_length=settings.USERNAME_MAX_LENGTH,
         required=True,
     )
+    email = serializers.EmailField(
+        max_length=settings.FIELD_NAME_LENGTH,
+        required=True,
+    )
 
-    class Meta:
-        model = User
-        fields = (
-            'email',
-            'username')
-
-    def validate_username(self, username):
+    @staticmethod
+    def validate_username(username):
         """Проверка на запрет использования имени 'me'."""
 
         if username == 'me':
@@ -48,19 +43,10 @@ class SignUpSerializer(serializers.ModelSerializer):
         return username
 
     def validate(self, attrs):
-        """Валидация на запрет повторного использования username и email не
-        соответствующих друг другу."""
+        """Запрет на использование занятых username и email."""
 
         username = attrs.get('username')
         email = attrs.get('email')
-        if (User.objects.filter(username=username).exists()
-                and User.objects.filter(email=email).exists()):
-            if User.objects.get(username=username).email != email:
-                raise serializers.ValidationError(
-                    {"username": "Имя пользователя не соответствует email.",
-                     "email": "email не соответствует имени пользователя."},
-                    status.HTTP_400_BAD_REQUEST,
-                )
         if User.objects.filter(username=username).exists():
             if User.objects.get(username=username).email != email:
                 raise serializers.ValidationError(
@@ -76,20 +62,36 @@ class SignUpSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class UsersSerializer(serializers.ModelSerializer):
+class SignUpSerializer(BaseUserSerializer):
+    """Сериализация при регистрации / повторного запроса подтверждения."""
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'username')
+
+    def validate(self, attrs):
+        """Валидация на запрет повторного использования username и email не
+        соответствующих друг другу."""
+
+        username = attrs.get('username')
+        email = attrs.get('email')
+        if (User.objects.filter(username=username).exists()
+                and User.objects.filter(email=email).exists()):
+            if User.objects.get(username=username).email != email:
+                raise serializers.ValidationError(
+                    {"username": "Имя пользователя не соответствует email.",
+                     "email": "email не соответствует имени пользователя."},
+                    status.HTTP_400_BAD_REQUEST,
+                )
+
+        return super().validate(attrs)
+
+
+class UsersSerializer(BaseUserSerializer):
     """Сериализация пользователей."""
 
-    username = serializers.RegexField(
-        regex=r'^[\w.@+-]+\Z$',
-        max_length=settings.USERNAME_MAX_LENGTH,
-        required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
-    email = serializers.EmailField(
-        max_length=settings.FIELD_NAME_LENGTH,
-        required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
     first_name = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         required=False)
@@ -107,24 +109,6 @@ class UsersSerializer(serializers.ModelSerializer):
             'bio',
             'role',
         )
-
-    def validate(self, attrs):
-        """Запрещает пользователям присваивать себе имя me и использовать
-        повторные username и email."""
-
-        if attrs.get('username') == 'me':
-            raise serializers.ValidationError(
-                'Использовать имя me запрещено'
-            )
-        if User.objects.filter(username=attrs.get('username')):
-            raise serializers.ValidationError(
-                'Пользователь с таким username уже существует'
-            )
-        if User.objects.filter(email=attrs.get('email')):
-            raise serializers.ValidationError(
-                'Пользователь с таким email уже существует'
-            )
-        return attrs
 
 
 class CategorySerializer(serializers.ModelSerializer):
