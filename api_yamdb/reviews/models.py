@@ -1,6 +1,6 @@
 """Описание моделей приложения reviews."""
 
-import datetime
+from django.utils import timezone
 
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -83,12 +83,12 @@ class Title(models.Model):
         'Год',
         validators=[
             MinValueValidator(
-                -4000,
+                settings.MIN_YEAR_REALISE,
                 message="Согласно справочным данным, первые писания "
                         "датируются 4 тысячелетием до н.э. Введите, "
                         "пожалуйста, корректные данные."),
             MaxValueValidator(
-                datetime.datetime.now().year,
+                timezone.now().year,
                 message="Год выпуска не может превышать текущий. Введите. "
                         "пожалуйста, корректные данные.")
         ],
@@ -132,10 +132,10 @@ class Review(ReviewCommentModel):
         'Оценка',
         validators=[
             MinValueValidator(
-                1,
+                settings.MIN_SCORE,
                 message="Оценка не может быть меньше 1"),
             MaxValueValidator(
-                10,
+                settings.MAX_SCORE,
                 message="Оценка не может быть больше 10")
         ],
     )
