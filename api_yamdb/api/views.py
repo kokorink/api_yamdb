@@ -154,10 +154,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет отзывов."""
 
     serializer_class = ReviewSerializer
-    permission_classes = [
+    permission_classes = (
         IsAuthorAdminSuperuserOrReadOnlyPermission,
         permissions.IsAuthenticatedOrReadOnly
-    ]
+    )
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
@@ -179,10 +179,10 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет комментариев."""
 
     serializer_class = CommentSerializer
-    permission_classes = [
+    permission_classes = (
         IsAuthorAdminSuperuserOrReadOnlyPermission,
         permissions.IsAuthenticatedOrReadOnly
-    ]
+    )
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_review(self):
