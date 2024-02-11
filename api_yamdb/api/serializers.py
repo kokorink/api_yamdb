@@ -57,7 +57,6 @@ class BaseUserSerializer(serializers.ModelSerializer):
             if User.objects.get(email=email).username != username:
                 raise serializers.ValidationError(
                     {"email": "Пользователь с таким email уже существует"},
-                    status.HTTP_400_BAD_REQUEST,
                 )
         return attrs
 
@@ -83,7 +82,6 @@ class SignUpSerializer(BaseUserSerializer):
                 raise serializers.ValidationError(
                     {"username": "Имя пользователя не соответствует email.",
                      "email": "email не соответствует имени пользователя."},
-                    status.HTTP_400_BAD_REQUEST,
                 )
 
         return super().validate(attrs)

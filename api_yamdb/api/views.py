@@ -107,11 +107,14 @@ class TokenView(APIView):
 
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username = serializer.data['username']
-        user = get_object_or_404(User, username=username)
+        if not (User.objects.filter(username=serializer.data['username'])
+                .exists()):
+            return Response({'username': 'Не верное имя пользователя.'},
+                            status=status.HTTP_404_NOT_FOUND)
+        user = User.objects.get(username=serializer.data['username'])
         confirmation_code = serializer.data['confirmation_code']
         if not default_token_generator.check_token(user, confirmation_code):
-            raise ValidationError('Неверный код')
+            raise ValidationError({'confirmation_code': 'Неверный код'})
         token = AccessToken.for_user(user)
         return Response({'token': str(token)}, status=status.HTTP_200_OK)
 
@@ -154,10 +157,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет отзывов."""
 
     serializer_class = ReviewSerializer
-    permission_classes = [
+    permission_classes = (
         IsAuthorAdminSuperuserOrReadOnlyPermission,
         permissions.IsAuthenticatedOrReadOnly
-    ]
+    )
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
@@ -179,10 +182,10 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет комментариев."""
 
     serializer_class = CommentSerializer
-    permission_classes = [
+    permission_classes = (
         IsAuthorAdminSuperuserOrReadOnlyPermission,
         permissions.IsAuthenticatedOrReadOnly
-    ]
+    )
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_review(self):
