@@ -45,7 +45,7 @@ class SignUpView(APIView):
             user, _ = User.objects.get_or_create(**serializer.validated_data)
         except IntegrityError:
             return Response(
-                'Неверные учётные данные.',
+                'ТАТАТАТА',
                 status=status.HTTP_400_BAD_REQUEST
             )
         confirmation_code = default_token_generator.make_token(user)
