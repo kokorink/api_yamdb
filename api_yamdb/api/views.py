@@ -111,7 +111,7 @@ class TokenView(APIView):
         user = get_object_or_404(User, username=username)
         confirmation_code = serializer.data['confirmation_code']
         if not default_token_generator.check_token(user, confirmation_code):
-            raise ValidationError('Неверный код')
+            raise ValidationError({'confirmation_code': 'Неверный код'})
         token = AccessToken.for_user(user)
         return Response({'token': str(token)}, status=status.HTTP_200_OK)
 
